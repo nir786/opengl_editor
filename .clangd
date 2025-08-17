@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+    - -Iinclude
+    - -Ithird_party/freetype2 
+    - -std=c++20
+
