@@ -4,11 +4,9 @@
 #include "../includes/run.h"
 #include "../includes/shaderManeger.h"
 #include "../includes/window.h"
-#include "vector"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <vector>
 
 int main() {
 

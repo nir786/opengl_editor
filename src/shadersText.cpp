@@ -150,7 +150,9 @@ void TextShader::build_vao() {
    * space for more parameters
    */
 }
-void TextShader::build_string(std::string line) {
+void TextShader::build_string(std::string line, float x, float y) {
+  curLine.x = x;
+  curLine.y = y;
   for (auto &ch : line) {
     stbtt_aligned_quad q;
     stbtt_GetPackedQuad(FontData.chars, FontData.width, FontData.hieght,
@@ -189,6 +191,72 @@ void TextShader::flush_render() {
   glBindVertexArray(VAO_TEXT);
 
   glDrawArrays(GL_TRIANGLES, 0, vertecies.size() * 6);
+
+  glBindVertexArray(0);
+  glUseProgram(0);
+}
+
+void TextShader::path_build_vao() {
+  glGenVertexArrays(1, &VAO_PATH_TEXT);
+  glGenBuffers(1, &VBO_PATH_TEXT);
+  glGenBuffers(1, &EBO_PATH_TEXT);
+
+  glBindVertexArray(VAO_PATH_TEXT);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_PATH_TEXT);
+  glBufferData(GL_ARRAY_BUFFER, Path_vertecies.size() * sizeof(vertexData) * 6,
+               Path_vertecies.data(),
+               GL_STATIC_DRAW); // if not drawing * sizeof(float)
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)0);
+
+  glBindVertexArray(0);
+  PathTextShaderData.projection =
+      glm::ortho(0.0f, (float)Glwindow::get().width,
+                 (float)Glwindow::get().highet, 0.0f, -1.0f, 1.0f);
+  PathTextShaderData.color = glm::vec3(1.0f, 0.0f, 0.0f);
+}
+void TextShader::path_build_string(std::string line, float x, float y) {
+  curLine.x = x;
+  curLine.y = y;
+  for (auto &ch : line) {
+    stbtt_aligned_quad q;
+    stbtt_GetPackedQuad(FontData.chars, FontData.width, FontData.hieght,
+                        ch - 32, &curLine.x, &curLine.y, &q, 1);
+
+    quadData t = {
+        {q.x0, q.y0, q.s0, q.t0},
+        {q.x1 - fontOffsets.xScale, q.y0, q.s1, q.t0},
+        {q.x0, q.y1 + fontOffsets.yScale, q.s0, q.t1},
+
+        {q.x1 - fontOffsets.xScale, q.y0, q.s1, q.t0},
+        {q.x1 - fontOffsets.xScale, q.y1 + fontOffsets.yScale, q.s1, q.t1},
+        {q.x0, q.y1 + fontOffsets.yScale, q.s0, q.t1},
+    };
+    if (ch != ' ')
+      curLine.x -= fontOffsets.Xspace;
+    else
+      curLine.x -= fontOffsets.XSpaceForSpace;
+
+    Path_vertecies.push_back(t);
+  }
+  path_build_vao();
+}
+void TextShader::path_push_string() {}
+void TextShader::path_flush_render() {
+  glUseProgram(TextShaderData.program);
+  glUniformMatrix4fv(
+      glGetUniformLocation(PathTextShaderData.program, "projection"), 1,
+      GL_FALSE, glm::value_ptr(PathTextShaderData.projection));
+  glUniform3f(glGetUniformLocation(PathTextShaderData.program, "textColor"),
+              PathTextShaderData.color.r, PathTextShaderData.color.g,
+              PathTextShaderData.color.b);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, FontData.TextreID);
+
+  glBindVertexArray(VAO_PATH_TEXT);
+
+  glDrawArrays(GL_TRIANGLES, 0, Path_vertecies.size() * 6);
 
   glBindVertexArray(0);
   glUseProgram(0);

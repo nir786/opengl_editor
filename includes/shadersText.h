@@ -59,18 +59,26 @@ public:
   AtlasData FontData;
   currentLine curLine;
   std::vector<quadData> vertecies;
+  std::vector<quadData> Path_vertecies;
   font fontOffsets;
   TextShaderData_a TextShaderData;
+  TextShaderData_a PathTextShaderData;
   std::map<char, Charecter> Charcters;
   unsigned int VAO_TEXT, VBO_TEXT, EBO_TEXT;
+  unsigned int VAO_PATH_TEXT, VBO_PATH_TEXT, EBO_PATH_TEXT;
 
   void init_text();
   void load_opengl_shader();
   void load_stb_atlas();
   void build_vao();
-  void build_string(std::string);
+  void build_string(std::string, float, float);
   void push_string();
   void flush_render();
+
+  void path_build_vao();
+  void path_build_string(std::string, float, float);
+  void path_push_string();
+  void path_flush_render();
 
   static TextShader &get() {
     static TextShader instance;
